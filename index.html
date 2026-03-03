@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Psikotes Verbal & Kuantitatif</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <h1>Latihan Psikotes Interaktif</h1>
+      <p>
+        Model seperti Google Form, dengan penilaian otomatis <strong>per materi</strong>
+        (Sinonim, Antonim, Analogi, Deret Angka/Huruf).
+      </p>
+    </header>
+
+    <main id="app" class="container"></main>
+
+    <template id="section-template">
+      <section class="card section-card">
+        <div class="section-head">
+          <h2></h2>
+          <p class="section-subtitle"></p>
+        </div>
+
+        <form class="quiz-form"></form>
+
+        <div class="section-actions">
+          <button type="button" class="submit-btn">Lihat Nilai Materi Ini</button>
+          <button type="button" class="reset-btn">Ulangi Materi Ini</button>
+        </div>
+
+        <div class="result" hidden></div>
+      </section>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
