@@ -304,6 +304,86 @@ button:disabled {
   color: #64748b;
 }
 
+.kraeplin-mobile-panel {
+  display: none;
+}
+
+.mobile-question-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.mobile-number-stack {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.mobile-number {
+  display: grid;
+  width: 96px;
+  height: 96px;
+  place-items: center;
+  border-radius: 26px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 3rem;
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+}
+
+.mobile-bottom-number {
+  position: relative;
+  border: 2px solid #93c5fd;
+}
+
+.mobile-bottom-number::after {
+  content: "+";
+  position: absolute;
+  right: -34px;
+  top: -20px;
+  color: var(--brand);
+  font-size: 2rem;
+}
+
+.mobile-answer-preview {
+  margin-bottom: 14px;
+  border-radius: 16px;
+  background: #e0f2fe;
+  color: #075985;
+  padding: 12px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.mobile-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mobile-keypad button {
+  min-height: 64px;
+  border-radius: 18px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 1.45rem;
+  box-shadow: 0 8px 0 #020617;
+}
+
+.mobile-keypad button:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 4px 0 #020617;
+}
+
+.mobile-keypad button:last-child {
+  grid-column: 2;
+}
+
 .kraeplin-result {
   display: flex;
   flex-wrap: wrap;
@@ -341,52 +421,18 @@ button:disabled {
   }
 
   .kraeplin-paper {
-    max-height: none;
-    padding: 10px;
-    background: #ffffff;
-  }
-
-  .kraeplin-row {
     display: none;
   }
 
-  .kraeplin-row.active,
-  .kraeplin-row.done {
+  .kraeplin-mobile-panel {
     display: block;
+    border: 1px solid #bfdbfe;
+    border-radius: 24px;
+    background: linear-gradient(180deg, #eff6ff, #dbeafe);
+    padding: 16px;
   }
 
-  .kraeplin-row.done:not(:last-of-type) {
-    display: none;
-  }
-
-  .row-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-
-  .kraeplin-pairs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .kraeplin-pair {
-    min-height: 150px;
-    justify-content: center;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: #f8fafc;
-    padding: 10px;
-  }
-
-  .pair-number {
-    width: 42px;
-    height: 42px;
-    font-size: 1.15rem;
-  }
-
-  .kraeplin-pair input {
-    width: 48px;
-    height: 42px;
+  .kraeplin-result {
+    display: block;
   }
 }

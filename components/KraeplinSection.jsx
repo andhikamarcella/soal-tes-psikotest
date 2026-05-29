@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 const TOTAL_SECONDS = 170;
 const ROW_DURATIONS = [14, 12, 16, 13, 15, 11, 17, 12, 16, 14, 13, 17];
 const PAIRS_PER_ROW = 10;
+const KEYPAD_DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 function twoDigit(value) {
   return String(value).padStart(2, "0");
@@ -17,26 +18,31 @@ function formatTime(seconds) {
   return `${minutes}:${twoDigit(remainder)}`;
 }
 
-function seededNumber(seed, rowIndex, pairIndex, offset) {
-  const raw = Math.sin(seed * 97 + rowIndex * 31 + pairIndex * 17 + offset * 13) * 10000;
+function seededNumber(seed, rowIndex, numberIndex) {
+  const raw = Math.sin(seed * 97 + rowIndex * 31 + numberIndex * 17) * 10000;
   return (Math.abs(Math.floor(raw)) % 9) + 1;
 }
 
 function buildRows(seed) {
-  return ROW_DURATIONS.map((duration, rowIndex) => ({
-    id: `baris-${rowIndex + 1}`,
-    duration,
-    pairs: Array.from({ length: PAIRS_PER_ROW }, (_, pairIndex) => {
-      const top = seededNumber(seed, rowIndex, pairIndex, 1);
-      const bottom = seededNumber(seed, rowIndex, pairIndex, 2);
-      return {
-        id: `${rowIndex}-${pairIndex}`,
-        top,
-        bottom,
-        answer: String((top + bottom) % 10),
-      };
-    }),
-  }));
+  return ROW_DURATIONS.map((duration, rowIndex) => {
+    const numbers = Array.from({ length: PAIRS_PER_ROW + 1 }, (_, numberIndex) => seededNumber(seed, rowIndex, numberIndex));
+
+    return {
+      id: `baris-${rowIndex + 1}`,
+      duration,
+      pairs: Array.from({ length: PAIRS_PER_ROW }, (_, pairIndex) => {
+        const bottom = numbers[pairIndex];
+        const top = numbers[pairIndex + 1];
+
+        return {
+          id: `${rowIndex}-${pairIndex}`,
+          top,
+          bottom,
+          answer: String((top + bottom) % 10),
+        };
+      }),
+    };
+  });
 }
 
 function getActiveRowIndex(elapsedSeconds) {
@@ -62,9 +68,13 @@ export default function KraeplinSection() {
   const [startedAt, setStartedAt] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [mobilePairIndex, setMobilePairIndex] = useState(0);
 
   const rows = useMemo(() => buildRows(seed), [seed]);
   const activeRowIndex = getActiveRowIndex(elapsed);
+  const activeRow = rows[activeRowIndex];
+  const mobilePair = activeRow.pairs[mobilePairIndex];
+  const hasMobilePair = mobilePairIndex < PAIRS_PER_ROW && Boolean(mobilePair);
   const remainingSeconds = Math.max(0, TOTAL_SECONDS - elapsed);
   const rowRemainingSeconds = getRowRemaining(elapsed, activeRowIndex);
 
@@ -90,6 +100,10 @@ export default function KraeplinSection() {
   }, [answers, rows]);
 
   useEffect(() => {
+    setMobilePairIndex(0);
+  }, [activeRowIndex]);
+
+  useEffect(() => {
     if (!isRunning || !startedAt) {
       return undefined;
     }
@@ -110,6 +124,7 @@ export default function KraeplinSection() {
   const onStart = () => {
     setAnswers({});
     setElapsed(0);
+    setMobilePairIndex(0);
     setStartedAt(Date.now());
     setIsFinished(false);
     setIsRunning(true);
@@ -118,6 +133,7 @@ export default function KraeplinSection() {
   const onReset = () => {
     setAnswers({});
     setElapsed(0);
+    setMobilePairIndex(0);
     setStartedAt(null);
     setIsFinished(false);
     setIsRunning(false);
@@ -129,9 +145,22 @@ export default function KraeplinSection() {
     setIsFinished(true);
   };
 
-  const onAnswer = (pairId, value) => {
+  const saveAnswer = (pairId, value) => {
     const normalized = value.replace(/\D/g, "").slice(-1);
     setAnswers((currentAnswers) => ({ ...currentAnswers, [pairId]: normalized }));
+  };
+
+  const onAnswer = (pairId, value) => {
+    saveAnswer(pairId, value);
+  };
+
+  const onKeypadAnswer = (value) => {
+    if (!isRunning || !hasMobilePair) {
+      return;
+    }
+
+    saveAnswer(mobilePair.id, value);
+    setMobilePairIndex((currentIndex) => Math.min(currentIndex + 1, PAIRS_PER_ROW));
   };
 
   return (
@@ -170,8 +199,36 @@ export default function KraeplinSection() {
           <ul>
             <li>Timer baru berjalan setelah tombol Mulai ditekan.</li>
             <li>Setiap baris punya durasi berbeda dan otomatis pindah baris.</li>
-            <li>Contoh: 8 + 7 = 15, maka isi <strong>5</strong>.</li>
+            <li>HP menampilkan satu soal dengan tombol angka seperti kalkulator.</li>
+            <li>Angka atas akan menjadi angka bawah untuk soal berikutnya di baris yang sama.</li>
           </ul>
+        </div>
+
+        <div className="kraeplin-mobile-panel" aria-label="Soal Kraeplin mode HP">
+          <div className="mobile-question-meta">
+            <span>{`Baris ${activeRowIndex + 1}`}</span>
+            <strong>{hasMobilePair ? `Soal ${mobilePairIndex + 1}/${PAIRS_PER_ROW}` : "Baris selesai"}</strong>
+          </div>
+          <div className="mobile-number-stack">
+            <span className="mobile-number mobile-top-number">{hasMobilePair ? mobilePair.top : "✓"}</span>
+            <span className="mobile-number mobile-bottom-number">{hasMobilePair ? mobilePair.bottom : "✓"}</span>
+          </div>
+          <div className="mobile-answer-preview">
+            {!hasMobilePair
+              ? "Selesai, tunggu baris berikutnya"
+              : answers[mobilePair.id]
+                ? `Jawaban: ${answers[mobilePair.id]}`
+                : isRunning
+                  ? "Pilih angka jawaban"
+                  : "Tekan Mulai dulu"}
+          </div>
+          <div className="mobile-keypad">
+            {KEYPAD_DIGITS.map((digit) => (
+              <button type="button" key={digit} onClick={() => onKeypadAnswer(digit)} disabled={!isRunning || !hasMobilePair}>
+                {digit}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="kraeplin-paper" aria-label="Lembar soal Kraeplin">
