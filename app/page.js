@@ -1,3 +1,4 @@
+import KraeplinSection from "../components/KraeplinSection";
 import QuizSection from "../components/QuizSection";
 import { sections } from "../data/questions";
 
@@ -16,6 +17,7 @@ export default function HomePage() {
         {sections.map((section) => (
           <QuizSection key={section.id} section={section} />
         ))}
+        <KraeplinSection />
       </main>
     </>
   );
